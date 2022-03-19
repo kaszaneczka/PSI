@@ -182,3 +182,5 @@ if __name__ == '__main__':
     koszt(all_pathes)
     print('nic')
     # show_graph_3d_plot(cities, cities)
+    #
+    print('cosnowego')
