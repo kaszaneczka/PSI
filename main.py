@@ -180,4 +180,4 @@ if __name__ == '__main__':
     answer = dfs_alghoritm(all_pathes, cities, cities[0], macierz_połączeń(cities))
     # delete_percent(adjacency_matrix_generator(cities), 20)
     koszt(all_pathes)
-    costam = 3
+    dodano = 1
