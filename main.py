@@ -181,5 +181,3 @@ if __name__ == '__main__':
     # delete_percent(adjacency_matrix_generator(cities), 20)
     koszt(all_pathes)
 
-    asdasdasd
-    asddddddd
