@@ -14,7 +14,7 @@ D      0
 import random
 import matplotlib.pyplot as plt
 
-# random.seed(1235)
+#random.seed(1235)
 
 punkty = [[100, 100, 50]]
 
@@ -114,15 +114,21 @@ def dfs_alghoritm(paths, vertices, start, polaczenia=None, visited=None):
         if x is not start and x not in visited:
             possible_next.append(x)
 
-    possible_next.append(visited[0])
+    #possible_next.append(visited[0])
+
 
     for x in possible_next:
-        if polaczenia[vertices.index(start)][vertices.index(x)] == 1:
+        if polaczenia[vertices.index(start)][vertices.index(x)] == 1 and len(vertices) > len(visited):
             dfs_alghoritm(paths, vertices, x, polaczenia, list(visited))
 
-    if len(vertices) == len(visited):
+    if len(vertices) == len(visited) and polaczenia[vertices.index(start)][vertices.index(visited[0])] == 1:
+        visited.append(visited[0])
+        dfs_alghoritm(paths, vertices, visited[len(visited) - 2], polaczenia, list(visited))
+
+    if len(vertices) + 1 == len(visited):
         if visited not in paths:
             paths.append(visited)
+
     return visited
 
 
@@ -179,6 +185,7 @@ if __name__ == '__main__':
 
     all_pathes = list()
     g = macierz_połączeń(cities)
+    print(cities)
     print(g[0])
     print(g[1])
     print(g[2])
