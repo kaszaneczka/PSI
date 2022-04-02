@@ -131,29 +131,46 @@ def dfs_alghoritm(paths, vertices, start, polaczenia=None, visited=None):
 
     return visited
 
+def bfs_alghoritm(vertices, start, polaczenia):
 
-def bfs_alghoritm(paths, vertices, start, visited=None):
-    if visited is None:
-        visited = list()
-    # print("node ", start)
-    if start not in visited:
-        visited.append(start)
+    visited = list()
+    paths = list()
+    queue = list()
 
-        possible_next = list()
+    queue.append([start])
+
+    while queue:  # queue = A ||| [[A,B], [A,C], [A,D]] ||| [[A,C], [A,D] [A,B,C], [A,B,D]]
+
+        current_path = queue.pop(0)  # A | [A,B] | [A,C]
+        s = current_path[len(current_path) - 1]  # A | B | C
+
+
+
+        to_check = list()
+
         for x in vertices:
-            if x is not start and x not in visited:
-                possible_next.append(x)
-        visited.append(possible_next)
-        print(visited)
+            if x is not s and x not in current_path and polaczenia[vertices.index(s)][vertices.index(x)] == 1 and len(vertices) > len(to_check):
+                to_check.append(x)
 
-        for x in possible_next:
-            bfs_alghoritm(paths, vertices, x, list(visited))
+        # if len(to_check) == 1 and polaczenia[vertices.index(s)][vertices.index(vertices[0])] == 1:
+        #     to_check.append(vertices[0])
+        #     print('asdasdasd')
 
-    if len(vertices) == len(visited):
-        if visited not in paths:
-            paths.append(visited)
-    return visited
 
+
+
+        for x in to_check:  # to_check = B,C,D | to_check = C,D | to_check = B,D
+
+            y = list(current_path)  # y = A || y = A,B
+            y.append(x)  # y = A, B | y = A, C | y = A, D ||| y = A,B,C | y = A,B,D |||
+
+            if len(y) is len(vertices) and y not in paths and polaczenia[vertices.index(y[-1])][0] == 1:
+                y.append(y[0])
+                paths.append(y)
+            elif y not in queue:
+                queue.append(y)  # queue jest puste wiec queue = [[A, B]] | queue = [[A,B], [A,C]] | queue = [[A,B], [A,C], [A,D]]
+
+    return paths
 
 def delete_percent(macierz, percent):
     count = int((len(macierz) * (len(macierz[0]) - 1)) * percent)
@@ -165,20 +182,43 @@ def delete_percent(macierz, percent):
             macierz[n][m] = 0
             i = i + 1
 
-
 def koszt(drogi):
     listaa = list()
     for y in range(len(drogi)):
-        suma = 0
+        suma = [0,0]
         for x in range(len(drogi[y]) - 1):
-            suma = suma + city_distance(drogi[y][x], drogi[y][x + 1])
+            suma[0] = suma[0] + city_distance(drogi[y][x], drogi[y][x + 1])
+            suma[1] =suma.append(city_distance(drogi[y][x], drogi[y][x + 1]))
         listaa.append(suma)
-    print(listaa)
+    return listaa
 
+def wez_drugi_elem(elem):
+    return elem[1]
+
+def greedy_1(wierzcholki, wezel_aktualny,polaczenia):
+    sciezki = list()
+    odwiedzone = list()
+    odwiedzone.append(wezel_aktualny)
+
+    while len(sciezki) != 1:
+        opcje = []
+        for j, x in enumerate(wierzcholki):
+            if x not in odwiedzone and polaczenia[wierzcholki.index(odwiedzone[-1])][wierzcholki.index(x)] == 1 :
+                ff = city_distance(odwiedzone[-1], x)
+                opcje.append([j, ff])
+
+        xd = sorted(opcje, key=wez_drugi_elem)
+        odwiedzone.append(wierzcholki[(xd[0][0])])
+
+        if len(wierzcholki) == len(odwiedzone):
+            odwiedzone.append(odwiedzone[0])
+            sciezki.append(odwiedzone)
+
+    return sciezki
 
 if __name__ == '__main__':
     cities = list()
-    for i in range(0, 3):
+    for i in range(0,3):
         cities.append(city_generator())
 
     matrix = adjacency_matrix_generator(cities)
@@ -191,7 +231,15 @@ if __name__ == '__main__':
     print(g[2])
 
     answer = dfs_alghoritm(all_pathes, cities, cities[0], g)
-    print(all_pathes)
+    print('----dfs-----',all_pathes)
+
+    bfs = bfs_alghoritm(cities, cities[0], g)
+    print('----bfs-----',bfs)
+
+    greedy1 = greedy_1(cities,cities[0],g)
+    print('----greedy1-----', greedy1)
     # delete_percent(adjacency_matrix_generator(cities), 20)
-    koszt(all_pathes)
-    dodano = 1
+
+
+    print(koszt(all_pathes)[0][0])
+    print(koszt(greedy1)[0][0])
