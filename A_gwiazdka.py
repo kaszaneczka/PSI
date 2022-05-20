@@ -13,6 +13,7 @@ D      0
 """
 import random
 import matplotlib.pyplot as plt
+import numpy as np
 
 #random.seed(1235)
 
@@ -237,7 +238,40 @@ def greedy_1(wierzcholki, wezel_aktualny,polaczenia):
     return sciezki
 
 
-def a_gwiazdka(wierzcholki : list, wezel_aktualny : list, polaczenia : list, odwiedzone : list = None, rodzic : list = [], opcje = None)->list:
+def heurystyka(wierzcholki : list,odwiedzone: list,polaczenia: list,ost_elem: list)->list: # obrócona macierz połaczen?
+    dist = []
+    visited = odwiedzone
+    #visited.append(ost_elem)
+
+    #print(odwiedzone)
+    for x in wierzcholki:
+        if x not in visited:
+            for y in wierzcholki:
+                if y not in visited and polaczenia[wierzcholki.index(x)][wierzcholki.index(y)] == 1:
+                    dist.append([city_distance(y, x),wierzcholki.index(x),wierzcholki.index(y) ])
+        elif polaczenia[wierzcholki.index(ost_elem)][wierzcholki.index(x)] == 0:
+            dist.append([10000000000000000000000000000.0,wierzcholki.index(x),wierzcholki.index(ost_elem)])
+    for x in wierzcholki:
+        if x not in visited and polaczenia[wierzcholki.index(ost_elem)][wierzcholki.index(x)] == 1:
+            dist.append([city_distance(ost_elem, x), wierzcholki.index(x), wierzcholki.index(ost_elem)])
+        elif polaczenia[wierzcholki.index(ost_elem)][wierzcholki.index(x)] == 0:
+            dist.append([10000000000000000000000000000.0,wierzcholki.index(x),wierzcholki.index(ost_elem)])
+
+    for x in wierzcholki:
+        if x not in visited and polaczenia[wierzcholki.index(visited[0])][wierzcholki.index(x)] == 1:
+            dist.append([city_distance(x,visited[0]), wierzcholki.index(visited[0]), wierzcholki.index(x)])
+        elif polaczenia[wierzcholki.index(visited[0])][wierzcholki.index(x)] == 0:
+            dist.append([10000000000000000000000000000.0,wierzcholki.index(visited[0]),wierzcholki.index(x)])
+
+#FUNKCJA PEŁNYM PRZEBIEGOM DAJE HEURYSTYKE 10E28, TRZEBA TO ZMIENIC
+
+    dist = sorted(dist)
+    print(dist)
+
+    return dist[0]
+
+
+def a_gwiazdka(wierzcholki: list, wezel_aktualny: list, polaczenia: list, odwiedzone : list= None, rodzic : list = [], opcje : list = None)->list:
 
     if odwiedzone is None:
         odwiedzone = []
@@ -248,68 +282,41 @@ def a_gwiazdka(wierzcholki : list, wezel_aktualny : list, polaczenia : list, odw
         odwiedzone = []
         for i in rodzic:
             odwiedzone.append(wierzcholki[i])
-    # if wezel_aktualny not in odwiedzone:
-    #     odwiedzone.append(wezel_aktualny)
 
     for j, x in enumerate(wierzcholki):
-        if x not in odwiedzone and polaczenia[wierzcholki.index(odwiedzone[-1])][wierzcholki.index(x)] == 1 :
-            heurystyka1 = heurystyka(wierzcholki, odwiedzone, polaczenia)[0]  * (len(wierzcholki)-len(odwiedzone))
-            #ff = city_distance(odwiedzone[-1], x,asym = True)
+        if x not in odwiedzone and polaczenia[wierzcholki.index(odwiedzone[-1])][wierzcholki.index(x)] == 1 and odwiedzone[-1] != x:
+            print('skad,dokad',wierzcholki.index(odwiedzone[-1]),wierzcholki.index(x))
+            heurystyka1 = heurystyka(wierzcholki, odwiedzone, polaczenia,ost_elem = x)[0] * (len(wierzcholki)-(len(odwiedzone))) #tutaj inne  wejscia trzeba dac bo w odwiedzonych nie ma aktualnego x'sa!!!
+
             u = []
-            for s,k in enumerate(odwiedzone):
-                u.append(s)
+            for s in odwiedzone:
+                u.append(wierzcholki.index(s))
             ff = 0
-            for q in range(len(odwiedzone)-1):
-                ff += city_distance(odwiedzone[q],odwiedzone[q+1] )
-            if j != u[-1]:
-                u.append(j)
+            u.append(j)
+
+            print('odwiedzone',odwiedzone)
+            print('u', u)
+
+            for q in range(len(u)-1):
+                print('odleglosc z',wierzcholki.index(wierzcholki[u[q]]),'do',wierzcholki.index(wierzcholki[u[q+1]]),'wynosi',city_distance(wierzcholki[u[q]],wierzcholki[u[q+1]]))
+                ff += city_distance(wierzcholki[u[q]],wierzcholki[u[q+1]])
 
             opcje.append([u, ff,heurystyka1,ff+heurystyka1])
-        elif x not in odwiedzone and (len(wierzcholki)-len(odwiedzone) ) == 1 and polaczenia[wierzcholki.index(odwiedzone[-1])][wierzcholki.index(x)] == 0 :
-            print('hehe xd')
-            heurystyka1 = 10000000000000000
-            # ff = city_distance(odwiedzone[-1], x,asym = True)
-            u = []
-            for s, k in enumerate(odwiedzone):
-                u.append(s)
-            ff = 0
-            for q in range(len(odwiedzone) - 1):
-                ff += city_distance(odwiedzone[q], odwiedzone[q + 1])
 
-            if j != u[-1]:
-                u.append(j)
-            print('tutututututu',opcje)
+    # if len(odwiedzone) == len(wierzcholki):
 
-            opcje.append([u, ff, heurystyka1, ff + heurystyka1])
-    opcje = sorted(opcje,key=wez_czwarty_elem)
-    rodzic = (opcje.pop(0))[0]
-    print('-++--+-+',opcje)
-    print('----',odwiedzone,len(odwiedzone),len(wierzcholki))
 
-    if len(odwiedzone) == len(wierzcholki):
+    if len(odwiedzone) == len(wierzcholki) + 1:
         return 0
 
+    opcje = sorted(opcje,key=wez_czwarty_elem)
+    print('-++--+-+', opcje)
+    rodzic = (opcje.pop(0))[0]
+
+    print('----',odwiedzone,len(odwiedzone),len(wierzcholki))
+    print('rodzic',rodzic)
 
     a_gwiazdka(wierzcholki, wierzcholki[rodzic[-1]], polaczenia, odwiedzone = odwiedzone,rodzic = rodzic,opcje = opcje)
-
-
-def heurystyka(wierzcholki : list,odwiedzone:list,polaczenia:list) -> float: # obrócona macierz połaczen
-    dist = []
-    for x in wierzcholki:
-        if x not in odwiedzone:
-            for y in wierzcholki:
-                if y not in odwiedzone and polaczenia[wierzcholki.index(x)][wierzcholki.index(y)] == 1:
-                    dist.append([city_distance(y, x),wierzcholki.index(x),wierzcholki.index(y) ])
-        elif polaczenia[wierzcholki.index(x)][wierzcholki.index(odwiedzone[-1])] == 0:
-            dist.append([10000000000000000000000000000.0,3,2])
-    for x in wierzcholki:
-        if x not in odwiedzone and polaczenia[wierzcholki.index(x)][wierzcholki.index(odwiedzone[-1])] == 1:
-            dist.append([city_distance(odwiedzone[-1], x), wierzcholki.index(x), wierzcholki.index(odwiedzone[-1])])
-        elif polaczenia[wierzcholki.index(x)][wierzcholki.index(odwiedzone[-1])] == 0:
-            dist.append([10000000000000000000000000000.0,3,2])
-
-    dist = sorted(dist)
-    return dist[0]
 
 
 
@@ -364,15 +371,34 @@ if __name__ == '__main__':
     #print(koszt(all_pathes)[0][0])
     #print(koszt(greedy1)[0][0])
 
-    print(heurystyka(cities,[cities[0],cities[1]],g))
+    #print(heurystyka(cities,[cities[0],cities[1]],g))
 
+
+
+    # bfs = bfs_alghoritm(cities, cities[0], g)
+    # print('----bfs-----',bfs)
+    #
+
+
+
+
+    # answer = dfs_alghoritm(all_pathes, cities, cities[0], g)
+    # print('----dfs-----',all_pathes)
+    #
+    # for a in range(len(all_pathes)):
+    #     all_pathes[a].pop(4)
+    #     print(koszt(all_pathes)[a])
+    #
+    # g = np.array(g)
+    # g = g.T
+    # g = list(g)
+    # print(g)
+    #
 
     print('----',a_gwiazdka(cities,cities[0],g))
-    bfs = bfs_alghoritm(cities, cities[0], g)
-    print('----bfs-----',bfs)
-
     answer = dfs_alghoritm(all_pathes, cities, cities[0], g)
     print('----dfs-----',all_pathes)
+
     for a in range(len(all_pathes)):
+        all_pathes[a].pop(4)
         print(koszt(all_pathes)[a])
-    #print(koszt(all_pathes)[0])
