@@ -306,7 +306,7 @@ def a_gwiazdka(wierzcholki: list, wezel_aktualny: list, polaczenia: list, odwied
     # if len(odwiedzone) == len(wierzcholki):
 
 
-    if len(odwiedzone) == len(wierzcholki) + 1:
+    if len(odwiedzone) == len(wierzcholki):
         return 0
 
     opcje = sorted(opcje,key=wez_czwarty_elem)
